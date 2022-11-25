@@ -1,7 +1,7 @@
 import os
 
 from aiohttp import ClientTimeout, ClientSession
-from sqlalchemy import select, and_, delete, insert
+from sqlalchemy import select, and_, delete, insert, Row, Tuple
 from sqlalchemy.orm import Session
 
 from models import SubwayRealtime, SubwayRouteStation
@@ -63,8 +63,8 @@ async def get_realtime_data(db_session: Session, route_id: int, route_name: str)
                         SubwayRouteStation.station_name == terminal_station,
                         SubwayRouteStation.route_id == route_id))
                     terminal_station_id = ""
-                    for row in db_session.execute(terminal_station_query):
-                        terminal_station_id = row[0]
+                    for terminal_station_item in db_session.execute(terminal_station_query):
+                        terminal_station_id = terminal_station_item[0]
                         break
                     if not terminal_station_id:
                         continue
