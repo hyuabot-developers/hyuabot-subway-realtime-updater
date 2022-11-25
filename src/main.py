@@ -7,7 +7,7 @@ from utils.database import get_db_engine
 
 
 async def main():
-    connection = await get_db_engine()
+    connection = get_db_engine()
     session_constructor = sessionmaker(bind=connection)
     session = session_constructor()
     if session is None:

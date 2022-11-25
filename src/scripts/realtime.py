@@ -4,7 +4,7 @@ from aiohttp import ClientTimeout, ClientSession
 from sqlalchemy import select, and_, delete, insert
 from sqlalchemy.orm import Session
 
-from models.subway import SubwayRealtime, SubwayRouteStation
+from models import SubwayRealtime, SubwayRouteStation
 
 
 async def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> None:
@@ -19,10 +19,10 @@ async def get_realtime_data(db_session: Session, route_id: int, route_name: str)
     timeout = ClientTimeout(total=3.0)
     arrival_list: list[dict] = []
     train_number_list: list[str] = []
-    current_station = select([
+    current_station = select(
         SubwayRouteStation.station_id, SubwayRouteStation.station_sequence,
-        SubwayRouteStation.cumulative_time]).where(and_(SubwayRouteStation.station_name == "한대앞",
-                                                        SubwayRouteStation.route_id == route_id))
+        SubwayRouteStation.cumulative_time).where(and_(SubwayRouteStation.station_name == "한대앞",
+                                                       SubwayRouteStation.route_id == route_id))
     campus_station_id, campus_station_sequence, campus_cumulative_time = "", 0, 0.0
     for row in db_session.execute(current_station):
         campus_station_id, campus_station_sequence, campus_cumulative_time = row
@@ -45,10 +45,10 @@ async def get_realtime_data(db_session: Session, route_id: int, route_name: str)
                     is_last_train = realtime_position_item["lstcarAt"]
 
                     # 현재 위치 조회
-                    current_location_query = select([
+                    current_location_query = select(
                         SubwayRouteStation.station_id,
                         SubwayRouteStation.station_sequence, SubwayRouteStation.cumulative_time
-                    ]).where(and_(
+                    ).where(and_(
                         SubwayRouteStation.station_name == current_station,
                         SubwayRouteStation.route_id == route_id))
                     current_station_id, current_station_sequence, current_cumulative_time = "", 0, 0.0
@@ -59,7 +59,7 @@ async def get_realtime_data(db_session: Session, route_id: int, route_name: str)
                         continue
 
                     # 종착역 조회
-                    terminal_station_query = select([SubwayRouteStation.station_id]).where(and_(
+                    terminal_station_query = select(SubwayRouteStation.station_id).where(and_(
                         SubwayRouteStation.station_name == terminal_station,
                         SubwayRouteStation.route_id == route_id))
                     terminal_station_id = ""
