@@ -64,7 +64,7 @@ async def get_realtime_data(db_session: Session, route_id: int, route_name: str)
                         SubwayRouteStation.route_id == route_id))
                     terminal_station_id = ""
                     for row in db_session.execute(terminal_station_query):
-                        terminal_station_id, = row
+                        terminal_station_id = row[0]
                         break
                     if not terminal_station_id:
                         continue
