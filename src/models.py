@@ -45,4 +45,3 @@ class SubwayRealtime(BaseModel):
     is_express_train: Mapped[bool] = mapped_column(nullable=False)
     is_last_train: Mapped[bool] = mapped_column(nullable=False)
     status_code: Mapped[int] = mapped_column(nullable=False)
-

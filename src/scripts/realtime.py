@@ -47,7 +47,7 @@ async def get_realtime_data(db_session: Session, route_id: int, route_name: str)
                     # 현재 위치 조회
                     current_location_query = select(
                         SubwayRouteStation.station_id,
-                        SubwayRouteStation.station_sequence, SubwayRouteStation.cumulative_time
+                        SubwayRouteStation.station_sequence, SubwayRouteStation.cumulative_time,
                     ).where(and_(
                         SubwayRouteStation.station_name == current_station,
                         SubwayRouteStation.route_id == route_id))
@@ -91,7 +91,7 @@ async def get_realtime_data(db_session: Session, route_id: int, route_name: str)
                         last_updated_time=updated_time,
                         is_express_train=is_express_train == 1,
                         is_last_train=is_last_train == 1,
-                        status_code=status_code
+                        status_code=status_code,
                     ))
     up_arrival_sequence, down_arrival_sequence = 0, 0
     for arrival_item in sorted(arrival_list, key=lambda x: x["remaining_time"]):
