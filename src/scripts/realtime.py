@@ -1,7 +1,7 @@
 import os
 
 from aiohttp import ClientTimeout, ClientSession
-from sqlalchemy import select, and_, delete, insert, Row, Tuple
+from sqlalchemy import select, and_, delete, insert
 from sqlalchemy.orm import Session
 
 from models import SubwayRealtime, SubwayRouteStation
