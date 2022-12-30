@@ -17,8 +17,8 @@ async def get_realtime_data(db_session: Session, route_id: int, route_name: str)
     url = f"http://swopenapi.seoul.go.kr/api/subway/{auth_key}/json/" \
           f"realtimePosition/0/{count}/{route_name}"
     timeout = ClientTimeout(total=3.0)
-    arrival_list: dict[list[dict]] = {}
-    train_number_list: dict[list[str]] = {}
+    arrival_list: dict[str, list[dict]] = {}
+    train_number_list: dict[str, list[str]] = {}
     support_station_name_list: list[str] = ["한대앞", "오이도"]
     support_station_list: list[dict] = []
     for support_station_name in support_station_name_list:
