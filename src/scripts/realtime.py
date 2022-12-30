@@ -1,5 +1,4 @@
 import os
-from typing import Union
 
 from aiohttp import ClientTimeout, ClientSession
 from sqlalchemy import select, and_, delete, insert
