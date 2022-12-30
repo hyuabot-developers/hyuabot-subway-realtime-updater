@@ -1,4 +1,5 @@
 import os
+from typing import Union
 
 from aiohttp import ClientTimeout, ClientSession
 from sqlalchemy import select, and_, delete, insert
@@ -20,7 +21,7 @@ async def get_realtime_data(db_session: Session, route_id: int, route_name: str)
     arrival_list: dict[str, list[dict]] = {}
     train_number_list: dict[str, list[str]] = {}
     support_station_name_list: list[str] = ["한대앞", "오이도"]
-    support_station_list: list[dict] = []
+    support_station_list: list[dict[str, Union[int, str, float]]] = []
     for support_station_name in support_station_name_list:
         support_station = select(
             SubwayRouteStation.station_id, SubwayRouteStation.station_sequence,
