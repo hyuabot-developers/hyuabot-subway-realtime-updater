@@ -42,7 +42,7 @@ async def insert_subway_route(db_session: Session):
 
 async def insert_subway_station(db_session: Session):
     base_url = "https://raw.githubusercontent.com/hyuabot-developers/hyuabot-subway-timetable/main"
-    supported_routes = [(1004, "skyblue"), (1071, "yellow")]
+    supported_routes = [1004, 1071]
     station_list: list[dict] = []
     station_name_list: list[dict] = []
     station_name_dict = {
@@ -52,8 +52,8 @@ async def insert_subway_station(db_session: Session):
         "신인천": "인천", "남동인": "남동인더스파크", "인천논": "인천논현", "소래포": "소래포구", "신수원": "수원",
         "수원시": "수원시청", "매탄권": "매탄권선", "구룡역": "구룡", "강남구": "강남구청", "로데오": "압구정로데오",
     }
-    for route_id, route in supported_routes:
-        url = f"{base_url}/{route}/station.csv"
+    for route_id in supported_routes:
+        url = f"{base_url}/{route_id}/station.csv"
         async with ClientSession() as session:
             async with session.get(url) as response:
                 reader = csv.reader((await response.text()).splitlines(), delimiter=",")
