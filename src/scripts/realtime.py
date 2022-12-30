@@ -23,12 +23,12 @@ async def get_realtime_data(db_session: Session, route_id: int, route_name: str)
     support_station_name_list: list[str] = ["한대앞", "오이도"]
     support_station_list: list[dict[str, Union[int, str, float]]] = []
     for support_station_name in support_station_name_list:
-        support_station = select(
+        support_station_query = select(
             SubwayRouteStation.station_id, SubwayRouteStation.station_sequence,
             SubwayRouteStation.cumulative_time).where(and_(SubwayRouteStation.station_name == support_station_name,
                                                            SubwayRouteStation.route_id == route_id))
         station_id, station_sequence, cumulative_time = "", 0, 0.0
-        for row in db_session.execute(support_station):
+        for row in db_session.execute(support_station_query):
             station_id, station_sequence, cumulative_time = row
             break
         if not station_id:
