@@ -79,10 +79,10 @@ async def get_realtime_data(db_session: Session, route_id: int, route_name: str)
                     for support_station_index, support_station in enumerate(support_station_list):
                         # 데이터 추가
                         if int(heading) == 0 and \
-                                not (terminal_station_id < support_station["station_id"] < current_station_id):
+                                not (terminal_station_id <= support_station["station_id"] < current_station_id):
                             continue
                         elif int(heading) == 1 and \
-                                not (current_station_id < support_station["station_id"] < terminal_station_id):
+                                not (current_station_id < support_station["station_id"] <= terminal_station_id):
                             continue
                         if support_station["station_id"] not in arrival_list.keys():
                             arrival_list[support_station["station_id"]] = []
