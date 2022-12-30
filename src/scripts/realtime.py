@@ -17,18 +17,26 @@ async def get_realtime_data(db_session: Session, route_id: int, route_name: str)
     url = f"http://swopenapi.seoul.go.kr/api/subway/{auth_key}/json/" \
           f"realtimePosition/0/{count}/{route_name}"
     timeout = ClientTimeout(total=3.0)
-    arrival_list: list[dict] = []
-    train_number_list: list[str] = []
-    current_station = select(
-        SubwayRouteStation.station_id, SubwayRouteStation.station_sequence,
-        SubwayRouteStation.cumulative_time).where(and_(SubwayRouteStation.station_name == "한대앞",
-                                                       SubwayRouteStation.route_id == route_id))
-    campus_station_id, campus_station_sequence, campus_cumulative_time = "", 0, 0.0
-    for row in db_session.execute(current_station):
-        campus_station_id, campus_station_sequence, campus_cumulative_time = row
-        break
-    if not campus_station_id:
-        raise RuntimeError("Failed to get start station id")
+    arrival_list: dict[list[dict]] = {}
+    train_number_list: dict[list[str]] = {}
+    support_station_name_list: list[str] = ["한대앞", "오이도"]
+    support_station_list: list[dict] = []
+    for support_station_name in support_station_name_list:
+        support_station = select(
+            SubwayRouteStation.station_id, SubwayRouteStation.station_sequence,
+            SubwayRouteStation.cumulative_time).where(and_(SubwayRouteStation.station_name == support_station_name,
+                                                           SubwayRouteStation.route_id == route_id))
+        station_id, station_sequence, cumulative_time = "", 0, 0.0
+        for row in db_session.execute(support_station):
+            station_id, station_sequence, cumulative_time = row
+            break
+        if not station_id:
+            raise RuntimeError("Failed to get start station id")
+        support_station_list.append({
+            "station_id": station_id,
+            "station_sequence": station_sequence,
+            "cumulative_time": cumulative_time,
+        })
     async with ClientSession(timeout=timeout) as session:
         async with session.get(url) as response:
             response_json = await response.json()
@@ -68,41 +76,47 @@ async def get_realtime_data(db_session: Session, route_id: int, route_name: str)
                         break
                     if not terminal_station_id:
                         continue
-
-                    # 데이터 추가
-                    if int(heading) == 0 and \
-                            not (terminal_station_id < campus_station_id < current_station_id):
-                        continue
-                    elif int(heading) == 1 and \
-                            not (current_station_id < campus_station_id < terminal_station_id):
-                        continue
-                    if train_number in train_number_list:
-                        arrival_list.remove(arrival_list[train_number_list.index(train_number)])
-                        train_number_list.remove(train_number)
-                    train_number_list.append(train_number)
-                    arrival_list.append(dict(
-                        station_id=campus_station_id,
-                        current_station_name=current_station,
-                        remaining_stop_count=abs(current_station_sequence - campus_station_sequence),
-                        remaining_time=abs(current_cumulative_time - campus_cumulative_time),
-                        up_down_type=int(heading) == 0,
-                        terminal_station_id=terminal_station_id,
-                        train_number=train_number,
-                        last_updated_time=updated_time,
-                        is_express_train=is_express_train == 1,
-                        is_last_train=is_last_train == 1,
-                        status_code=status_code,
-                    ))
+                    for support_station_index, support_station in enumerate(support_station_list):
+                        # 데이터 추가
+                        if int(heading) == 0 and \
+                                not (terminal_station_id < support_station["station_id"] < current_station_id):
+                            continue
+                        elif int(heading) == 1 and \
+                                not (current_station_id < support_station["station_id"] < terminal_station_id):
+                            continue
+                        if support_station["station_id"] not in arrival_list.keys():
+                            arrival_list[support_station["station_id"]] = []
+                            train_number_list[support_station["station_id"]] = []
+                        if train_number in train_number_list[support_station["station_id"]]:
+                            arrival_list[support_station["station_id"]].remove(
+                                arrival_list[support_station["station_id"]]
+                                [train_number_list[support_station["station_id"]].index(train_number)])
+                            train_number_list[support_station["station_id"]].remove(train_number)
+                        train_number_list[support_station["station_id"]].append(train_number)
+                        arrival_list[support_station["station_id"]].append({
+                            "station_id": support_station["station_id"],
+                            "current_station_name": current_station,
+                            "remaining_stop_count": abs(current_station_sequence - support_station["station_sequence"]),
+                            "remaining_time": abs(current_cumulative_time - support_station["cumulative_time"]),
+                            "up_down_type": int(heading) == 0,
+                            "terminal_station_id": terminal_station_id,
+                            "train_number": train_number,
+                            "last_updated_time": updated_time,
+                            "is_express_train": is_express_train == 1,
+                            "is_last_train": is_last_train == 1,
+                            "status_code": status_code,
+                        })
     up_arrival_sequence, down_arrival_sequence = 0, 0
-    for arrival_item in sorted(arrival_list, key=lambda x: x["remaining_time"]):
-        if arrival_item["up_down_type"]:
-            arrival_item["arrival_sequence"] = up_arrival_sequence
-            up_arrival_sequence += 1
-        else:
-            arrival_item["arrival_sequence"] = down_arrival_sequence
-            down_arrival_sequence += 1
-    db_session.execute(delete(SubwayRealtime).where(SubwayRealtime.station_id == campus_station_id))
-    if arrival_list:
-        insert_statement = insert(SubwayRealtime).values(arrival_list)
-        db_session.execute(insert_statement)
+    for station_id in arrival_list.keys():
+        for arrival_item in sorted(arrival_list[station_id], key=lambda x: x["remaining_time"]):
+            if arrival_item["up_down_type"]:
+                arrival_item["arrival_sequence"] = up_arrival_sequence
+                up_arrival_sequence += 1
+            else:
+                arrival_item["arrival_sequence"] = down_arrival_sequence
+                down_arrival_sequence += 1
+        db_session.execute(delete(SubwayRealtime).where(SubwayRealtime.station_id == station_id))
+        if arrival_list[station_id]:
+            insert_statement = insert(SubwayRealtime).values(arrival_list[station_id])
+            db_session.execute(insert_statement)
     db_session.commit()
