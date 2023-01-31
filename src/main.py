@@ -25,9 +25,8 @@ async def main():
 
 
 async def execute_script(session):
-    job_list = [get_realtime_data(session, 1004, "4호선"),
-                get_realtime_data(session, 1071, "수인분당선")]
-    await asyncio.gather(*job_list)
+    get_realtime_data(session, 1004, "4호선")
+    get_realtime_data(session, 1071, "수인분당선")
     session.close()
 
 if __name__ == '__main__':
