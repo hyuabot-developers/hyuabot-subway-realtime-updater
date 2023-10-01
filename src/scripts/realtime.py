@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta, datetime, timezone
 
 import requests
 from sqlalchemy import select, and_, delete, insert
@@ -25,7 +26,7 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
             SubwayRouteStation.station_id, SubwayRouteStation.station_sequence,
             SubwayRouteStation.cumulative_time).where(and_(SubwayRouteStation.station_name == support_station_name,
                                                            SubwayRouteStation.route_id == route_id))
-        station_id, station_sequence, cumulative_time = "", 0, 0.0
+        station_id, station_sequence, cumulative_time = "", 0, timedelta(seconds=0)
         for row in db_session.execute(support_station_query):
             station_id, station_sequence, cumulative_time = row
             break
@@ -37,7 +38,7 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
             "cumulative_time": cumulative_time,
         })
     response = requests.get(url)
-    response_json = await response.json()
+    response_json = response.json()
     if "realtimePositionList" in response_json.keys():
         realtime_position_list = response_json["realtimePositionList"]
         for realtime_position_item in realtime_position_list:
@@ -99,7 +100,8 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
                     "up_down_type": int(heading) == 0,
                     "terminal_station_id": terminal_station_id,
                     "train_number": train_number,
-                    "last_updated_time": updated_time,
+                    "last_updated_time": datetime.fromisoformat(
+                        updated_time).astimezone(tz=timezone(timedelta(hours=9))),
                     "is_express_train": is_express_train == 1,
                     "is_last_train": is_last_train == 1,
                     "status_code": status_code,
