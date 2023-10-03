@@ -37,7 +37,7 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
             "cumulative_time": cumulative_time,
         })
     response = requests.get(url)
-    response_json = await response.json()
+    response_json = response.json()
     if "realtimePositionList" in response_json.keys():
         realtime_position_list = response_json["realtimePositionList"]
         for realtime_position_item in realtime_position_list:
