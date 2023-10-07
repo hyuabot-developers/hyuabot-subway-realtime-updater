@@ -40,10 +40,8 @@ class TestFetchRealtimeData:
         session = session_constructor()
         # Get list to fetch
         session.execute(delete(SubwayRealtime))
-        job_list = [
-            get_realtime_data(session, 1004, "4호선"),
-            get_realtime_data(session, 1071, "수인분당선")]
-        await asyncio.gather(*job_list)
+        get_realtime_data(session, 1004, "4호선")
+        get_realtime_data(session, 1071, "수인분당선")
 
         # Check if the data is inserted
         arrival_list = session.query(SubwayRealtime).all()
@@ -52,7 +50,7 @@ class TestFetchRealtimeData:
             assert type(arrival_item.up_down_type) is str
             assert type(arrival_item.arrival_sequence) is int
             assert type(arrival_item.remaining_stop_count) is int
-            assert type(arrival_item.remaining_time) is float
+            assert type(arrival_item.remaining_time) is datetime.timedelta
             assert type(arrival_item.terminal_station_id) is str
             assert type(arrival_item.current_station_name) is str
             assert type(arrival_item.train_number) is str
