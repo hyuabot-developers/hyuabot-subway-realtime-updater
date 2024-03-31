@@ -46,15 +46,15 @@ class TestFetchRealtimeData:
         # Check if the data is inserted
         arrival_list = session.query(SubwayRealtime).all()
         for arrival_item in arrival_list:  # type: SubwayRealtime
-            assert type(arrival_item.station_id) is str
-            assert type(arrival_item.up_down_type) is str
-            assert type(arrival_item.arrival_sequence) is int
-            assert type(arrival_item.remaining_stop_count) is int
-            assert type(arrival_item.remaining_time) is datetime.timedelta
-            assert type(arrival_item.terminal_station_id) is str
-            assert type(arrival_item.current_station_name) is str
-            assert type(arrival_item.train_number) is str
-            assert type(arrival_item.last_updated_time) is datetime.datetime
-            assert type(arrival_item.is_express_train) is bool
-            assert type(arrival_item.is_last_train) is bool
-            assert type(arrival_item.status_code) is int
+            assert isinstance(arrival_item.station_id, str)
+            assert isinstance(arrival_item.up_down_type, str)
+            assert isinstance(arrival_item.arrival_sequence, int)
+            assert isinstance(arrival_item.remaining_stop_count, int)
+            assert isinstance(arrival_item.remaining_time, datetime.timedelta)
+            assert isinstance(arrival_item.terminal_station_id, str)
+            assert isinstance(arrival_item.current_station_name, str)
+            assert isinstance(arrival_item.train_number, str)
+            assert isinstance(arrival_item.last_updated_time, datetime.datetime)
+            assert isinstance(arrival_item.is_express_train, bool)
+            assert isinstance(arrival_item.is_last_train, bool)
+            assert isinstance(arrival_item.status_code, int)
