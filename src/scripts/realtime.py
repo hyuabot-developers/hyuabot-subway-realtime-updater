@@ -1,7 +1,8 @@
 import os
-from datetime import timedelta, datetime, timezone
+from datetime import timedelta, datetime
 
 import requests
+from pytz import timezone
 from sqlalchemy import select, and_, delete, insert
 from sqlalchemy.orm import Session
 
@@ -101,7 +102,7 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
                     "terminal_station_id": terminal_station_id,
                     "train_number": train_number,
                     "last_updated_time": datetime.fromisoformat(
-                        updated_time).astimezone(tz=timezone(timedelta(hours=9))),
+                        updated_time).replace(tzinfo=timezone("Asia/Seoul")),
                     "is_express_train": is_express_train == 1,
                     "is_last_train": is_last_train == 1,
                     "status_code": status_code,
