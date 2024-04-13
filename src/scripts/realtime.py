@@ -40,6 +40,7 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
         })
     response = requests.get(url)
     response_json = response.json()
+    kst = timezone("Asia/Seoul")
     if "realtimePositionList" in response_json.keys():
         realtime_position_list = response_json["realtimePositionList"]
         for realtime_position_item in realtime_position_list:
@@ -93,6 +94,7 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
                         [train_number_list[support_station["station_id"]].index(train_number)])
                     train_number_list[support_station["station_id"]].remove(train_number)
                 train_number_list[support_station["station_id"]].append(train_number)
+                updated_at = kst.localize(datetime.strptime(updated_time, "%Y-%m-%d %H:%M:%S"))
                 arrival_list[support_station["station_id"]].append({
                     "station_id": support_station["station_id"],
                     "current_station_name": current_station,
@@ -101,8 +103,7 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
                     "up_down_type": int(heading) == 0,
                     "terminal_station_id": terminal_station_id,
                     "train_number": train_number,
-                    "last_updated_time": datetime.fromisoformat(
-                        updated_time).replace(tzinfo=timezone("Asia/Seoul")),
+                    "last_updated_time": updated_at,
                     "is_express_train": is_express_train == 1,
                     "is_last_train": is_last_train == 1,
                     "status_code": status_code,
