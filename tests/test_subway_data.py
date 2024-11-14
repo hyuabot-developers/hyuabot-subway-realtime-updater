@@ -50,7 +50,7 @@ class TestFetchRealtimeData:
             assert isinstance(arrival_item.up_down_type, str)
             assert isinstance(arrival_item.arrival_sequence, int)
             assert isinstance(arrival_item.remaining_stop_count, int)
-            assert isinstance(arrival_item.remaining_time, datetime.timedelta)
+            assert isinstance(arrival_item.remaining_time, datetime.time)
             assert isinstance(arrival_item.terminal_station_id, str)
             assert isinstance(arrival_item.current_station_name, str)
             assert isinstance(arrival_item.train_number, str)
