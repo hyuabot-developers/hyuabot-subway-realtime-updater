@@ -1,5 +1,5 @@
 import os
-from datetime import timedelta, datetime
+from datetime import datetime, time, timedelta
 
 import requests
 from pytz import timezone
@@ -27,7 +27,7 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
             SubwayRouteStation.station_id, SubwayRouteStation.station_sequence,
             SubwayRouteStation.cumulative_time).where(and_(SubwayRouteStation.station_name == support_station_name,
                                                            SubwayRouteStation.route_id == route_id))
-        station_id, station_sequence, cumulative_time = "", 0, timedelta(seconds=0)
+        station_id, station_sequence, cumulative_time = "", 0, time()
         for row in db_session.execute(support_station_query):
             station_id, station_sequence, cumulative_time = row
             break
@@ -60,7 +60,7 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
             ).where(and_(
                 SubwayRouteStation.station_name == current_station,
                 SubwayRouteStation.route_id == route_id))
-            current_station_id, current_station_sequence, current_cumulative_time = "", 0, 0.0
+            current_station_id, current_station_sequence, current_cumulative_time = "", 0, time()
             for row in db_session.execute(current_location_query):
                 current_station_id, current_station_sequence, current_cumulative_time = row
                 break
@@ -95,11 +95,20 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
                     train_number_list[support_station["station_id"]].remove(train_number)
                 train_number_list[support_station["station_id"]].append(train_number)
                 updated_at = kst.localize(datetime.strptime(updated_time, "%Y-%m-%d %H:%M:%S"))
+                support_station_cumulative_time: time = support_station["cumulative_time"]
                 arrival_list[support_station["station_id"]].append({
                     "station_id": support_station["station_id"],
                     "current_station_name": current_station,
                     "remaining_stop_count": abs(current_station_sequence - support_station["station_sequence"]),
-                    "remaining_time": abs(current_cumulative_time - support_station["cumulative_time"]),
+                    "remaining_time": abs((timedelta(
+                        hours=current_cumulative_time.hour,
+                        minutes=current_cumulative_time.minute,
+                        seconds=current_cumulative_time.second,
+                    ) - timedelta(
+                        hours=support_station_cumulative_time.hour,
+                        minutes=support_station_cumulative_time.minute,
+                        seconds=support_station_cumulative_time.second,
+                    ))),
                     "up_down_type": int(heading) == 0,
                     "terminal_station_id": terminal_station_id,
                     "train_number": train_number,
