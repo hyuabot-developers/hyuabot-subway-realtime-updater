@@ -24,18 +24,18 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
     support_station_list: list[dict] = []
     for support_station_name in support_station_name_list:
         support_station_query = select(
-            SubwayRouteStation.station_id, SubwayRouteStation.station_sequence,
+            SubwayRouteStation.station_id, SubwayRouteStation.station_seq,
             SubwayRouteStation.cumulative_time).where(and_(SubwayRouteStation.station_name == support_station_name,
                                                            SubwayRouteStation.route_id == route_id))
-        station_id, station_sequence, cumulative_time = "", 0, timedelta(seconds=0)
+        station_id, station_seq, cumulative_time = "", 0, timedelta(seconds=0)
         for row in db_session.execute(support_station_query):
-            station_id, station_sequence, cumulative_time = row
+            station_id, station_seq, cumulative_time = row
             break
         if not station_id:
             raise RuntimeError("Failed to get start station id")
         support_station_list.append({
             "station_id": station_id,
-            "station_sequence": station_sequence,
+            "station_seq": station_seq,
             "cumulative_time": cumulative_time,
         })
     response = requests.get(url)
@@ -56,13 +56,13 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
             # 현재 위치 조회
             current_location_query = select(
                 SubwayRouteStation.station_id,
-                SubwayRouteStation.station_sequence, SubwayRouteStation.cumulative_time,
+                SubwayRouteStation.station_seq, SubwayRouteStation.cumulative_time,
             ).where(and_(
                 SubwayRouteStation.station_name == current_station,
                 SubwayRouteStation.route_id == route_id))
-            current_station_id, current_station_sequence, current_cumulative_time = "", 0, 0.0
+            current_station_id, current_station_seq, current_cumulative_time = "", 0, 0.0
             for row in db_session.execute(current_location_query):
-                current_station_id, current_station_sequence, current_cumulative_time = row
+                current_station_id, current_station_seq, current_cumulative_time = row
                 break
             if not current_station_id:
                 continue
@@ -98,7 +98,7 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
                 arrival_list[support_station["station_id"]].append({
                     "station_id": support_station["station_id"],
                     "current_station_name": current_station,
-                    "remaining_stop_count": abs(current_station_sequence - support_station["station_sequence"]),
+                    "remaining_stop_count": abs(current_station_seq - support_station["station_seq"]),
                     "remaining_time": abs(current_cumulative_time - support_station["cumulative_time"]),
                     "up_down_type": int(heading) == 0,
                     "terminal_station_id": terminal_station_id,
@@ -108,15 +108,15 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
                     "is_last_train": is_last_train == 1,
                     "status_code": status_code,
                 })
-    up_arrival_sequence, down_arrival_sequence = 0, 0
+    up_arrival_seq, down_arrival_seq = 0, 0
     for station_id in arrival_list.keys():
         for arrival_item in sorted(arrival_list[station_id], key=lambda x: x["remaining_time"]):
             if arrival_item["up_down_type"]:
-                arrival_item["arrival_sequence"] = up_arrival_sequence
-                up_arrival_sequence += 1
+                arrival_item["arrival_seq"] = up_arrival_seq
+                up_arrival_seq += 1
             else:
-                arrival_item["arrival_sequence"] = down_arrival_sequence
-                down_arrival_sequence += 1
+                arrival_item["arrival_seq"] = down_arrival_seq
+                down_arrival_seq += 1
         db_session.execute(delete(SubwayRealtime).where(SubwayRealtime.station_id == station_id))
         if arrival_list[station_id]:
             insert_statement = insert(SubwayRealtime).values(arrival_list[station_id])
