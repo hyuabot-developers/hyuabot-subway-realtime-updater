@@ -100,7 +100,7 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
                     "current_station_name": current_station,
                     "remaining_stop_count": abs(current_station_seq - support_station["station_seq"]),
                     "remaining_time": abs(current_cumulative_time - support_station["cumulative_time"]),
-                    "up_down_type": int(heading) == 0,
+                    "up_down_type": "up" if int(heading) == 0 else "down",
                     "terminal_station_id": terminal_station_id,
                     "train_number": train_number,
                     "last_updated_time": updated_at,
