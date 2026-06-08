@@ -24,18 +24,18 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
     support_station_list: list[dict] = []
     for support_station_name in support_station_name_list:
         support_station_query = select(
-            SubwayRouteStation.station_id, SubwayRouteStation.station_sequence,
+            SubwayRouteStation.station_id, SubwayRouteStation.station_seq,
             SubwayRouteStation.cumulative_time).where(and_(SubwayRouteStation.station_name == support_station_name,
                                                            SubwayRouteStation.route_id == route_id))
-        station_id, station_sequence, cumulative_time = "", 0, timedelta(seconds=0)
+        station_id, station_seq, cumulative_time = "", 0, timedelta(seconds=0)
         for row in db_session.execute(support_station_query):
-            station_id, station_sequence, cumulative_time = row
+            station_id, station_seq, cumulative_time = row
             break
         if not station_id:
             raise RuntimeError("Failed to get start station id")
         support_station_list.append({
             "station_id": station_id,
-            "station_sequence": station_sequence,
+            "station_seq": station_seq,
             "cumulative_time": cumulative_time,
         })
     response = requests.get(url)
@@ -56,13 +56,13 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
             # 현재 위치 조회
             current_location_query = select(
                 SubwayRouteStation.station_id,
-                SubwayRouteStation.station_sequence, SubwayRouteStation.cumulative_time,
+                SubwayRouteStation.station_seq, SubwayRouteStation.cumulative_time,
             ).where(and_(
                 SubwayRouteStation.station_name == current_station,
                 SubwayRouteStation.route_id == route_id))
-            current_station_id, current_station_sequence, current_cumulative_time = "", 0, 0.0
+            current_station_id, current_station_seq, current_cumulative_time = "", 0, 0.0
             for row in db_session.execute(current_location_query):
-                current_station_id, current_station_sequence, current_cumulative_time = row
+                current_station_id, current_station_seq, current_cumulative_time = row
                 break
             if not current_station_id:
                 continue
@@ -98,7 +98,7 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
                 arrival_list[support_station["station_id"]].append({
                     "station_id": support_station["station_id"],
                     "current_station_name": current_station,
-                    "remaining_stop_count": abs(current_station_sequence - support_station["station_sequence"]),
+                    "remaining_stop_count": abs(current_station_seq - support_station["station_seq"]),
                     "remaining_time": abs(current_cumulative_time - support_station["cumulative_time"]),
                     "up_down_type": int(heading) == 0,
                     "terminal_station_id": terminal_station_id,
