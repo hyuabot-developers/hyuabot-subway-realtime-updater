@@ -66,7 +66,7 @@ async def insert_subway_station(db_session: Session):
                             station_id=station_number,
                             route_id=route_id,
                             station_name=station_name,
-                            station_sequence=row_index,
+                            station_seq=row_index,
                             cumulative_time=timedelta(
                                 minutes=float(cumulative_time)),
                         ),
@@ -84,7 +84,7 @@ async def insert_subway_station(db_session: Session):
             route_id=insert_statement.excluded.route_id,
             station_name=insert_statement.excluded.station_name,
             cumulative_time=insert_statement.excluded.cumulative_time,
-            station_sequence=insert_statement.excluded.station_sequence,
+            station_seq=insert_statement.excluded.station_seq,
         ),
     )
     db_session.execute(insert_statement)
