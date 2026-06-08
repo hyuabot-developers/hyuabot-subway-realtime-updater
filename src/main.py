@@ -1,4 +1,6 @@
 import asyncio
+import os
+import time
 
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import sessionmaker
@@ -29,5 +31,21 @@ async def execute_script(session):
     get_realtime_data(session, 1071, "수인분당선")
     session.close()
 
+
+async def run_loop():
+    # CronJob fires every minute; loop several times within that window to
+    # achieve sub-minute refresh (default: every 15s, 4 iterations per minute).
+    iterations = int(os.getenv("LOOP_ITERATIONS", "4"))
+    interval = float(os.getenv("LOOP_INTERVAL_SECONDS", "15"))
+    for i in range(iterations):
+        started_at = time.monotonic()
+        try:
+            await main()
+        except Exception as e:  # noqa: BLE001 - keep loop alive on transient errors
+            print("Subway realtime iteration failed:", e)
+        if i < iterations - 1:
+            await asyncio.sleep(max(0.0, interval - (time.monotonic() - started_at)))
+
+
 if __name__ == '__main__':
-    asyncio.run(main())
+    asyncio.run(run_loop())
