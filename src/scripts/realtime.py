@@ -100,7 +100,7 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
                     "current_station_name": current_station,
                     "remaining_stop_count": abs(current_station_seq - support_station["station_seq"]),
                     "remaining_time": abs(current_cumulative_time - support_station["cumulative_time"]),
-                    "up_down_type": int(heading) == 0,
+                    "up_down_type": heading,
                     "terminal_station_id": terminal_station_id,
                     "train_number": train_number,
                     "last_updated_time": updated_at,
@@ -111,11 +111,11 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
     up_arrival_sequence, down_arrival_sequence = 0, 0
     for station_id in arrival_list.keys():
         for arrival_item in sorted(arrival_list[station_id], key=lambda x: x["remaining_time"]):
-            if arrival_item["up_down_type"]:
-                arrival_item["arrival_sequence"] = up_arrival_sequence
+            if int(arrival_item["up_down_type"]) == 0:
+                arrival_item["arrival_seq"] = up_arrival_sequence
                 up_arrival_sequence += 1
             else:
-                arrival_item["arrival_sequence"] = down_arrival_sequence
+                arrival_item["arrival_seq"] = down_arrival_sequence
                 down_arrival_sequence += 1
         db_session.execute(delete(SubwayRealtime).where(SubwayRealtime.station_id == station_id))
         if arrival_list[station_id]:
