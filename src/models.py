@@ -31,11 +31,11 @@ class SubwayRouteStation(BaseModel):
 class SubwayRealtime(BaseModel):
     __tablename__ = "subway_realtime"
     __table_args__ = (
-        PrimaryKeyConstraint("station_id", "up_down_type", "arrival_sequence"),
+        PrimaryKeyConstraint("station_id", "up_down_type", "arrival_seq"),
     )
     station_id: Mapped[str] = mapped_column(nullable=False)
     up_down_type: Mapped[str] = mapped_column(nullable=False)
-    arrival_sequence: Mapped[int] = mapped_column(nullable=False)
+    arrival_seq: Mapped[int] = mapped_column(nullable=False)
     remaining_stop_count: Mapped[int] = mapped_column(nullable=False)
     remaining_time: Mapped[datetime.timedelta] = mapped_column(nullable=False)
     terminal_station_id: Mapped[str] = mapped_column(nullable=False)

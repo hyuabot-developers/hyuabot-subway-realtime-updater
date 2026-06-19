@@ -48,7 +48,7 @@ class TestFetchRealtimeData:
         for arrival_item in arrival_list:  # type: SubwayRealtime
             assert isinstance(arrival_item.station_id, str)
             assert isinstance(arrival_item.up_down_type, str)
-            assert isinstance(arrival_item.arrival_sequence, int)
+            assert isinstance(arrival_item.arrival_seq, int)
             assert isinstance(arrival_item.remaining_stop_count, int)
             assert isinstance(arrival_item.remaining_time, datetime.timedelta)
             assert isinstance(arrival_item.terminal_station_id, str)
