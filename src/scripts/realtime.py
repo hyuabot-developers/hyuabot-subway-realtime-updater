@@ -75,25 +75,22 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
                 continue
 
             # 종착역 조회
-            terminal_station_query = select(
-                SubwayRouteStation.station_id,
-                SubwayRouteStation.station_seq,
-            ).where(and_(
+            terminal_station_query = select(SubwayRouteStation.station_id).where(and_(
                 SubwayRouteStation.station_name == terminal_station,
                 SubwayRouteStation.route_id == route_id))
-            terminal_station_id, terminal_station_seq = "", 0
+            terminal_station_id = ""
             for terminal_station_item in db_session.execute(terminal_station_query):
-                terminal_station_id, terminal_station_seq = terminal_station_item
+                terminal_station_id = terminal_station_item[0]
                 break
             if not terminal_station_id:
                 continue
             for support_station_index, support_station in enumerate(support_station_list):
                 # 데이터 추가
                 if int(heading) == 0 and \
-                        not (terminal_station_seq <= support_station["station_seq"] < current_station_seq):
+                        not (terminal_station_id <= support_station["station_id"] < current_station_id):
                     continue
                 elif int(heading) == 1 and \
-                        not (current_station_seq < support_station["station_seq"] <= terminal_station_seq):
+                        not (current_station_id < support_station["station_id"] <= terminal_station_id):
                     continue
                 if support_station["station_id"] not in arrival_list.keys():
                     arrival_list[support_station["station_id"]] = []
