@@ -4,10 +4,11 @@ A recurring job that fetches real-time subway arrival information and keeps the 
 
 ## Overview
 
-On each run the job queries the Seoul Metro open API for real-time arrival data for the two lines serving Hanyang University ERICA:
+On each run the job queries the Seoul Metro open API for real-time arrival data for the lines serving Hanyang University ERICA:
 
 - **Line 4** (route ID: 1004) — Hanyang University station
 - **Suin-Bundang Line** (route ID: 1071) — Sangnoksu station
+- **Seohae Line** (route ID: 1093) — Choji station
 
 The job clears stale `subway_realtime` records and inserts fresh arrival predictions. Supports master-DB failover.
 

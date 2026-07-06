@@ -28,6 +28,7 @@ async def insert_subway_route(db_session: Session):
         dict(route_id=1077, route_name="신분당선"),
         dict(route_id=1091, route_name="자기부상선"),
         dict(route_id=1092, route_name="우이신설선"),
+        dict(route_id=1093, route_name="서해선"),
         dict(route_id=1163, route_name="경의중앙선"),
         dict(route_id=1165, route_name="공항철도"),
         dict(route_id=1167, route_name="경춘선"),
@@ -39,6 +40,21 @@ async def insert_subway_route(db_session: Session):
     )
     db_session.execute(insert_statement)
     db_session.commit()
+
+
+def insert_local_station_data(route_id: int, station_rows: list[tuple[str, str, float]]) -> list[dict]:
+    station_list: list[dict] = []
+    for row_index, (station_number, station_name, cumulative_time) in enumerate(station_rows):
+        station_list.append(
+            dict(
+                station_id=station_number,
+                route_id=route_id,
+                station_name=station_name,
+                station_seq=row_index,
+                cumulative_time=timedelta(minutes=cumulative_time),
+            ),
+        )
+    return station_list
 
 
 async def insert_subway_station(db_session: Session):
@@ -72,6 +88,25 @@ async def insert_subway_station(db_session: Session):
                         ),
                     )
                     station_name_list.append(dict(station_name=station_name))
+    seohae_station_list = insert_local_station_data(
+        1093,
+        [
+            ("S16", "원시", 0),
+            ("S17", "시우", 2),
+            ("S18", "초지", 5),
+            ("S19", "선부", 8),
+            ("S20", "달미", 11),
+            ("S21", "시흥능곡", 14),
+            ("S22", "시흥시청", 17),
+            ("S23", "신현", 20),
+            ("S24", "신천", 23),
+            ("S25", "시흥대야", 26),
+            ("S26", "소새울", 29),
+            ("S27", "소사", 32),
+        ],
+    )
+    station_list.extend(seohae_station_list)
+    station_name_list.extend(dict(station_name=row["station_name"]) for row in seohae_station_list)
     insert_statement = insert(SubwayStation).values(station_name_list)
     insert_statement = insert_statement.on_conflict_do_nothing()
     db_session.execute(insert_statement)

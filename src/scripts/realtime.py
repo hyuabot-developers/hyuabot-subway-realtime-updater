@@ -9,6 +9,13 @@ from sqlalchemy.orm import Session
 from models import SubwayRealtime, SubwayRouteStation
 
 
+SUPPORT_STATION_NAMES_BY_ROUTE_ID = {
+    1004: ["한대앞", "오이도"],
+    1071: ["한대앞", "오이도"],
+    1093: ["초지"],
+}
+
+
 def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> None:
     auth_key = os.getenv("METRO_AUTH_KEY")
     if auth_key is None:
@@ -20,7 +27,7 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
           f"realtimePosition/0/{count}/{route_name}"
     arrival_list: dict[str, list[dict]] = {}
     train_number_list: dict[str, list[str]] = {}
-    support_station_name_list: list[str] = ["한대앞", "오이도"]
+    support_station_name_list = SUPPORT_STATION_NAMES_BY_ROUTE_ID.get(route_id, [])
     support_station_list: list[dict] = []
     for support_station_name in support_station_name_list:
         support_station_query = select(
