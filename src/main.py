@@ -29,6 +29,7 @@ async def main():
 async def execute_script(session):
     get_realtime_data(session, 1004, "4호선")
     get_realtime_data(session, 1071, "수인분당선")
+    get_realtime_data(session, 1093, "서해선")
     session.close()
 
 

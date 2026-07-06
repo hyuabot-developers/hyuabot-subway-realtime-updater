@@ -9,6 +9,13 @@ from sqlalchemy.orm import Session
 from models import SubwayRealtime, SubwayRouteStation
 
 
+SUPPORT_STATION_NAMES_BY_ROUTE_ID = {
+    1004: ["한대앞", "오이도"],
+    1071: ["한대앞", "오이도"],
+    1093: ["초지"],
+}
+
+
 def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> None:
     auth_key = os.getenv("METRO_AUTH_KEY")
     if auth_key is None:
@@ -20,7 +27,7 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
           f"realtimePosition/0/{count}/{route_name}"
     arrival_list: dict[str, list[dict]] = {}
     train_number_list: dict[str, list[str]] = {}
-    support_station_name_list: list[str] = ["한대앞", "오이도"]
+    support_station_name_list = SUPPORT_STATION_NAMES_BY_ROUTE_ID.get(route_id, [])
     support_station_list: list[dict] = []
     for support_station_name in support_station_name_list:
         support_station_query = select(
@@ -68,22 +75,25 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
                 continue
 
             # 종착역 조회
-            terminal_station_query = select(SubwayRouteStation.station_id).where(and_(
+            terminal_station_query = select(
+                SubwayRouteStation.station_id,
+                SubwayRouteStation.station_seq,
+            ).where(and_(
                 SubwayRouteStation.station_name == terminal_station,
                 SubwayRouteStation.route_id == route_id))
-            terminal_station_id = ""
+            terminal_station_id, terminal_station_seq = "", 0
             for terminal_station_item in db_session.execute(terminal_station_query):
-                terminal_station_id = terminal_station_item[0]
+                terminal_station_id, terminal_station_seq = terminal_station_item
                 break
             if not terminal_station_id:
                 continue
             for support_station_index, support_station in enumerate(support_station_list):
                 # 데이터 추가
                 if int(heading) == 0 and \
-                        not (terminal_station_id <= support_station["station_id"] < current_station_id):
+                        not (terminal_station_seq <= support_station["station_seq"] < current_station_seq):
                     continue
                 elif int(heading) == 1 and \
-                        not (current_station_id < support_station["station_id"] <= terminal_station_id):
+                        not (current_station_seq < support_station["station_seq"] <= terminal_station_seq):
                     continue
                 if support_station["station_id"] not in arrival_list.keys():
                     arrival_list[support_station["station_id"]] = []
