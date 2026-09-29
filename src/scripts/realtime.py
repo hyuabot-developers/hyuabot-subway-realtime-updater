@@ -76,7 +76,7 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
         ).where(and_(
             SubwayRouteStation.station_name == current_station,
             SubwayRouteStation.route_id == route_id))
-        current_station_id, current_station_seq, current_cumulative_time = "", 0, 0.0
+        current_station_id, current_station_seq, current_cumulative_time = "", 0, timedelta(seconds=0)
         for row in db_session.execute(current_location_query):
             current_station_id, current_station_seq, current_cumulative_time = row
             break
