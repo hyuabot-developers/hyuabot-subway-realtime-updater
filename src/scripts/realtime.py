@@ -1,3 +1,4 @@
+import logging
 import os
 from datetime import timedelta, datetime
 
@@ -7,6 +8,7 @@ from sqlalchemy import select, and_, delete, insert
 from sqlalchemy.orm import Session
 
 from models import SubwayRealtime, SubwayRouteStation
+from scripts.station_arrival import fetch_station_arrivals, merge_station_arrivals
 
 
 SUPPORT_STATION_NAMES_BY_ROUTE_ID = {
@@ -44,6 +46,7 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
             "station_id": station_id,
             "station_seq": station_seq,
             "cumulative_time": cumulative_time,
+            "station_name": support_station_name,
         })
     response = requests.get(url, timeout=5)
     response.raise_for_status()
@@ -123,7 +126,21 @@ def get_realtime_data(db_session: Session, route_id: int, route_name: str) -> No
                 "is_express_train": is_express_train == 1,
                 "is_last_train": is_last_train == 1,
                 "status_code": status_code,
+                "arrival_message": None,
+                "arrival_message_detail": None,
+                "remaining_seconds": None,
+                "arrival_code": None,
             })
+    for support_station in support_station_list:
+        try:
+            station_arrivals = fetch_station_arrivals(support_station["station_name"])
+            merge_station_arrivals(arrival_list.get(support_station["station_id"], []), station_arrivals)
+        except Exception as error:  # noqa: BLE001 - arrival details augment position rows
+            logging.warning(
+                "Seoul Metro arrival details skipped for %s: %s",
+                support_station["station_name"],
+                error,
+            )
     support_station_id_list = [support_station["station_id"] for support_station in support_station_list]
     if support_station_id_list:
         db_session.execute(delete(SubwayRealtime).where(SubwayRealtime.station_id.in_(support_station_id_list)))
