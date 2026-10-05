@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import DateTime, PrimaryKeyConstraint, String, func
+from sqlalchemy import PrimaryKeyConstraint, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
