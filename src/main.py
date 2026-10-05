@@ -1,10 +1,15 @@
 import asyncio
+import logging
 import os
 import time
 
+from sqlalchemy import select
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import sessionmaker
 
+from models import SubwayRealtime, SubwayRouteStation
+from scripts.korail import update_train_delays
+from scripts.metro_alert import refresh_subway_alerts
 from scripts.realtime import get_realtime_data
 from utils.database import get_db_engine, get_master_db_engine
 
@@ -27,10 +32,33 @@ async def main():
 
 
 async def execute_script(session):
-    get_realtime_data(session, 1004, "4호선")
-    get_realtime_data(session, 1071, "수인분당선")
-    get_realtime_data(session, 1093, "서해선")
-    session.close()
+    try:
+        get_realtime_data(session, 1004, "4호선")
+        get_realtime_data(session, 1071, "수인분당선")
+        get_realtime_data(session, 1093, "서해선")
+        position_query = select(
+            SubwayRouteStation.route_id,
+            SubwayRealtime.train_number,
+            SubwayRealtime.current_station_name,
+        ).join(
+            SubwayRealtime,
+            SubwayRealtime.station_id == SubwayRouteStation.station_id,
+        ).where(SubwayRouteStation.route_id.in_((1004, 1071, 1093)))
+        position_rows = [
+            {"route_id": route_id, "train_number": train_number, "current_station_name": station_name}
+            for route_id, train_number, station_name in session.execute(position_query)
+        ]
+        try:
+            update_train_delays(session, position_rows)
+        except Exception as error:  # noqa: BLE001 - KORAIL is optional
+            logging.warning("KORAIL delay collection skipped: %s", error)
+        try:
+            refresh_subway_alerts(session)
+        except Exception as error:  # noqa: BLE001 - alert feed is optional
+            logging.warning("Seoul Metro alert collection skipped: %s", error)
+        session.commit()
+    finally:
+        session.close()
 
 
 async def run_loop():

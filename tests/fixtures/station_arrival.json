@@ -1,0 +1,12 @@
+{
+  "realtimeArrivalList": [
+    {
+      "btrainNo": "001",
+      "updnLine": "상행",
+      "arvlMsg2": "전역 도착",
+      "arvlMsg3": "이번 역은 한대앞역",
+      "barvlDt": "75",
+      "arvlCd": "1"
+    }
+  ]
+}

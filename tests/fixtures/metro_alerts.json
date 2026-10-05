@@ -1,0 +1,25 @@
+{
+  "response": {
+    "header": { "resultCode": "00" },
+    "body": {
+      "items": {
+        "item": [
+          {
+            "alertId": "alert-1",
+            "routeId": "1004",
+            "title": "4호선 운행 지연",
+            "content": "열차 간격 조정 중",
+            "startsAt": "2026-10-04T09:00:00+09:00",
+            "endsAt": "2026-10-04T12:00:00+09:00"
+          },
+          {
+            "alertId": "alert-old",
+            "routeId": "1071",
+            "title": "종료된 안내",
+            "endsAt": "2026-10-04T08:00:00+09:00"
+          }
+        ]
+      }
+    }
+  }
+}
