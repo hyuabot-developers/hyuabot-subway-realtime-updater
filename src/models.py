@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import Date, DateTime, PrimaryKeyConstraint, String, Text, func
+from sqlalchemy import PrimaryKeyConstraint, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -49,32 +49,3 @@ class SubwayRealtime(BaseModel):
     arrival_message_detail: Mapped[str | None] = mapped_column(String(100), nullable=True)
     remaining_seconds: Mapped[int | None] = mapped_column(nullable=True)
     arrival_code: Mapped[int | None] = mapped_column(nullable=True)
-
-
-class SubwayTrainDelay(BaseModel):
-    __tablename__ = "subway_train_delay"
-    __table_args__ = (
-        PrimaryKeyConstraint("run_date", "train_number", name="pk_subway_train_delay"),
-    )
-    run_date: Mapped[datetime.date] = mapped_column(Date, nullable=False)
-    train_number: Mapped[str] = mapped_column(String(10), nullable=False)
-    route_id: Mapped[int | None] = mapped_column(nullable=True)
-    delay_minutes: Mapped[int | None] = mapped_column(nullable=True)
-    reference_station_name: Mapped[str | None] = mapped_column(String(30), nullable=True)
-    updated_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
-
-
-class SubwayAlert(BaseModel):
-    __tablename__ = "subway_alert"
-    alert_id: Mapped[str] = mapped_column(String(50), primary_key=True)
-    route_id: Mapped[int | None] = mapped_column(nullable=True)
-    title: Mapped[str] = mapped_column(String(200), nullable=False)
-    content: Mapped[str | None] = mapped_column(Text, nullable=True)
-    starts_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    ends_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    source: Mapped[str] = mapped_column(String(30), nullable=False, default="SEOUL_METRO")
-    updated_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
